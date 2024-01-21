@@ -177,29 +177,6 @@ class CWMenuDialog extends ComfyDialog {
 					// add "share key" input (required), "title" input (required), "description" input (optional)
 					// $el("div.cw3-menu-container", {width:"100%"}, [
 					$el("div.cw3-menu-container", [
-						// $el("details", {
-						// 	style: {
-						// 		border: "1px solid #999",
-						// 		marginTop: "10px",
-						// 		padding: "5px",
-						// 		borderRadius: "5px",
-						// 		backgroundColor: "#222"
-						// 	}
-						// }, [
-						// 	$el("summary", {
-						// 		style: {
-						// 			color: "white",
-						// 			cursor: "pointer",
-						// 		}
-						// 	}, [`ComfyRun.com account`]),
-						// 	$el("h4", {
-						// 		textContent: "Share key (found at: https://comfyrun.com/account)",
-						// 	}, []),
-						// 	$el("p", { size: 3, color: "white" }, ["Your uploaded workflow will be saved to your account."]),
-						// 	this.cw_sharekey_input,
-						// ]),
-
-
 						$el("h4", {
 							textContent: "Your workflow's code",
 							size: 3,
