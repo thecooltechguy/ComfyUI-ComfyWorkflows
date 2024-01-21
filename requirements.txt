@@ -1,0 +1,3 @@
+tqdm
+aiohttp-retry
+aiofiles
