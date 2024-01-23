@@ -1,22 +1,17 @@
-# ComfyUI-ComfyRun
+# ComfyUI-ComfyWorkflows
 
-The easiest way to run & share any ComfyUI workflow
+The best way to run, share, & discover thousands of ComfyUI workflows.
 
-[https://comfyrun.com](https://comfyrun.com)
+[https://comfyworkflows.com](https://comfyworkflows.com)
+
+[![](https://dcbadge.vercel.app/api/server/kXS43yTRNA)](https://discord.gg/kXS43yTRNA)
 
 ## Installation
 
-This uses ComfyUI-Manager's experimental **Snapshots** feature, so please make sure you have the latest version of ComfyUI-Manager installed: [https://github.com/ltdrdata/ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager)
-
-
-### Option 1: Install from ComfyUI-Manager
-To install this custom node from ComfyUI-Manager, click on **Custom Nodes** on the ComfyUI menu, and search for **ComfyRun**.
-
-### Option 2: Install manually
 ```bash
 cd ComfyUI/custom_nodes/
-git clone https://github.com/thecooltechguy/ComfyUI-ComfyRun
-cd ComfyUI-ComfyRun/
+git clone https://github.com/thecooltechguy/ComfyUI-ComfyWorkflows
+cd ComfyUI-ComfyWorkflows/
 python -m pip install -r requirements.txt
 ``` 
 
@@ -24,18 +19,18 @@ Restart ComfyUI.
 
 ## Usage
 
-### Deploying a local workflow to the cloud
+### Deploy your workflow online
+This will enable anyone to run your workflow online, without having to install ComfyUI.
 
-1. Create a free account on [https://comfyrun.com](https://comfyrun.com)
-2. Copy your **Share key** from [https://comfyrun.com/account](https://comfyrun.com/account)
-3. Click on **Share via ComfyRun** on the ComfyUI menu.
-4. Enter your **Share key** and a title for the workflow, and click **Upload workflow**.
-5. ComfyRun will deploy your workflow to the cloud and return a URL where anyone can easily run it online, or run it locally.
+1. Create a free account on [https://comfyworkflows.com](https://comfyworkflows.com)
+2. Share your workflow at: [https://comfyworkflows.com/upload](https://comfyworkflows.com/upload)
+3. On the workflow's page, click **Enable cloud workflow** and copy the code displayed.
+4. Open your workflow in your local ComfyUI.
+5. Click on the **Upload to ComfyWorkflows** button in the menu.
+5. Enter your code and click **Upload**
+6. After a few minutes, your workflow will be runnable online by anyone, via the workflow's URL at ComfyWorkflows.
 
-### Importing & running an online workflow, locally
+## Upcoming features
 
-1. Click on **Import from ComfyRun** on the ComfyUI menu.
-2. Enter the workflow URL that you want to run locally.
-3. Click **Import workflow**.
-5. ComfyRun will download the workflow and all of its necessary files, so that you can easily run it locally on your computer.
-5. Restart ComfyUI before running the imported workflow.
+- [ ] Import any workflow from ComfyWorkflows with zero setup.
+- [ ] Backup your local private workflows to the cloud.

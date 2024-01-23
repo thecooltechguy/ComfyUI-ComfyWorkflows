@@ -2,11 +2,9 @@ import hashlib
 import io
 import json
 import os
-import shutil
 import time
 from typing import Callable
 
-import aiofiles
 import aiohttp
 import git
 from aiohttp import web
@@ -241,6 +239,7 @@ async def api_comfyworkflows_upload(request):
                 "num_files" : len(all_file_info),
                 "workflow_json" : json.dumps(prompt),
                 "snapshot_json" : json.dumps(snapshot_json),
+                "filteredNodeTypeToNodeData" : json.dumps(filteredNodeTypeToNodeData),
             },
         ) as resp:
             assert resp.status == 200

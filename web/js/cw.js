@@ -167,16 +167,26 @@ class CWMenuDialog extends ComfyDialog {
 		const content =
 			$el("div.cw3-menu-container", //"div.comfy-modal-content",
 				[
-					$el("tr.cw3-title", { width: "100%" }, [
+					$el("tr.cw3-title", { width: "100%", style: {
+						padding: "10px 10px 10px 10px",
+					} }, [
 						$el("font", { size: 6, color: "white" }, [`Upload your workflow to ComfyWorkflows.com`]),
 						$el("br", {}, []),
-						$el("font", { size: 3, color: "white" }, [`This enables others to easily run your workflow online and locally on their computer.`]),
+						$el("font", { size: 3, color: "white" }, [`This lets people easily run your workflow online & on their computer.`]),
 					]),
 					$el("br", {}, []),
 
 					// add "share key" input (required), "title" input (required), "description" input (optional)
 					// $el("div.cw3-menu-container", {width:"100%"}, [
 					$el("div.cw3-menu-container", [
+						$el("p", { size: 3, color: "white", style: {color: "white"} }, ["Follow these steps to upload your workflow:"]),
+						$el("ol", {style: {color: "white"}}, [
+							$el("li", {}, ["Share your workflow online at ComfyWorkflows.com."]),
+							$el("li", {}, ["Go to your workflow's URL"]),
+							$el("li", {}, ["Click the 'Enable online workflow' or 'Update online workflow' button on the workflow's page."]),
+							$el("li", {}, ["Copy the code shown and paste it below."]),
+						]),
+						$el("br", {}, []),
 						$el("h4", {
 							textContent: "Your workflow's code",
 							size: 3,
@@ -185,14 +195,7 @@ class CWMenuDialog extends ComfyDialog {
 								color: 'white'
 							}
 						}, []),
-						$el("p", { size: 3, color: "white" }, ["Follow these steps to get your workflow's code:"]),
-						$el("ol", {}, [
-							$el("li", {}, ["Share your workflow online at ComfyWorkflows.com."]),
-							$el("li", {}, ["Go to your workflow's URL"]),
-							$el("li", {}, ["Click the 'Enable online workflow' or 'Update online workflow' button on the workflow's page."]),
-							$el("li", {}, ["Copy the code shown and paste it below."]),
-						]),
-						this.code_input_input,
+						this.code_input,
 						$el("br", {}, []),
 
 						this.final_message,
@@ -347,6 +350,7 @@ app.registerExtension({
 				setCWInstance(new CWMenuDialog());
 			cw_instance.show();
 		}
+
 		menu.append(deployButton);
 	},
 
