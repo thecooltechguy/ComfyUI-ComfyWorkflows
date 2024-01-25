@@ -3,17 +3,17 @@ import io
 import json
 import os
 import time
-from typing import Callable
-
 import aiohttp
 import git
+import folder_paths
+import server
+import os
+import pkg_resources
+from typing import Callable
 from aiohttp import web
 from aiohttp_retry import ExponentialRetry, RetryClient
 from tqdm.asyncio import tqdm
 
-import folder_paths
-import server
-import os
 
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -228,6 +228,11 @@ async def api_comfyworkflows_upload(request):
     raise_for_status.remove(200)
     raise_for_status.remove(429)
 
+    pip_packages = []
+    installed_packages = pkg_resources.working_set
+    for package in installed_packages:
+        pip_packages.append(package.__dict__)
+
     # First, create the runnable workflow object
     async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
         retry_client = RetryClient(session, retry_options=ExponentialRetry(attempts=3), raise_for_status=raise_for_status)
@@ -240,6 +245,7 @@ async def api_comfyworkflows_upload(request):
                 "workflow_json" : json.dumps(prompt),
                 "snapshot_json" : json.dumps(snapshot_json),
                 "filteredNodeTypeToNodeData" : json.dumps(filteredNodeTypeToNodeData),
+                "pip_packages" : json.dumps(pip_packages) if pip_packages else None,
             },
         ) as resp:
             assert resp.status == 200
