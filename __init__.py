@@ -13,6 +13,7 @@ from tqdm.asyncio import tqdm
 
 import folder_paths
 import server
+import os
 
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -23,11 +24,10 @@ __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
 comfy_path = os.path.dirname(folder_paths.__file__)
 custom_nodes_path = os.path.join(comfy_path, 'custom_nodes')
 
-CW_ENDPOINT = "http://localhost:3000" #"https://comfyworkflows.com" #"http://localhost:3000"
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
 
 import re
 import unicodedata
-
 
 def slugify(value, allow_unicode=False):
     """
