@@ -190,6 +190,21 @@ async def api_comfyworkflows_upload(request):
             'dest_relative_path': os.path.relpath(file_path, base_directory),
             'checksum': file_checksum
         }
+    
+    extra_folders_to_upload = [
+    ]
+    for folder in extra_folders_to_upload:
+        abs_folder_path = os.path.abspath(folder)
+        for root, dirs, files in os.walk(abs_folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_checksum = get_file_sha256_checksum(file_path)
+                all_file_info[file] = {
+                    'path': file_path,
+                    'size': os.path.getsize(file_path),
+                    'dest_relative_path': os.path.relpath(file_path, base_directory),
+                    'checksum': file_checksum
+                }
 
     total_num_chunks = 0
     for file_name, file_info in all_file_info.items():
@@ -212,7 +227,10 @@ async def api_comfyworkflows_upload(request):
     pip_packages = []
     installed_packages = pkg_resources.working_set
     for package in installed_packages:
-        pip_packages.append(package.__dict__)
+        pip_package = package.__dict__
+        if "_provider" in pip_package:
+            del pip_package["_provider"]
+        pip_packages.append(pip_package)
 
     # First, create the runnable workflow object
     async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
