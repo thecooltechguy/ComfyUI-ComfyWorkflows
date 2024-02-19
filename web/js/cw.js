@@ -1,5 +1,6 @@
 import { app } from "../../../scripts/app.js";
 import { api } from '../../../scripts/api.js'
+import {defaultGraph} from "../../../scripts/defaultGraph.js";
 // import { ComfyWidgets } from "../../../scripts/widgets.js"
 import { ComfyDialog, $el } from "../../../scripts/ui.js";
 // import { ShareDialog, SUPPORTED_OUTPUT_NODE_TYPES, getPotentialOutputsAndOutputNodes } from "./comfyui-share.js";
@@ -25,6 +26,12 @@ docStyle.innerHTML = `
 	background-color: black;
 	text-align: center;
 	height: 45px;
+}
+.cw3-export-title {
+	padding: 10px 10px 0 10p;
+	background-color: black;
+	text-align: center;
+	height: 75px;
 }
 `;
 
@@ -69,6 +76,7 @@ const style = `
 
 export var cw_instance = null;
 export var cw_import_instance = null;
+export var cw_export_instance = null;
 
 export function setCWInstance(obj) {
 	cw_instance = obj;
@@ -76,6 +84,10 @@ export function setCWInstance(obj) {
 
 export function setCWImportInstance(obj) {
 	cw_import_instance = obj;
+}
+
+export function setCWExportInstance(obj) {
+	cw_export_instance = obj;
 }
 
 async function fetchNicknames() {
@@ -167,9 +179,11 @@ class CWMenuDialog extends ComfyDialog {
 		const content =
 			$el("div.cw3-menu-container", //"div.comfy-modal-content",
 				[
-					$el("tr.cw3-title", { width: "100%", style: {
-						padding: "10px 10px 10px 10px",
-					} }, [
+					$el("tr.cw3-title", {
+						width: "100%", style: {
+							padding: "10px 10px 10px 10px",
+						}
+					}, [
 						$el("font", { size: 6, color: "white" }, [`Upload your workflow to ComfyWorkflows.com`]),
 						$el("br", {}, []),
 						$el("font", { size: 3, color: "white" }, [`This lets people easily run your workflow online & on their computer.`]),
@@ -179,8 +193,8 @@ class CWMenuDialog extends ComfyDialog {
 					// add "share key" input (required), "title" input (required), "description" input (optional)
 					// $el("div.cw3-menu-container", {width:"100%"}, [
 					$el("div.cw3-menu-container", [
-						$el("p", { size: 3, color: "white", style: {color: "white"} }, ["Follow these steps to upload your workflow:"]),
-						$el("ol", {style: {color: "white"}}, [
+						$el("p", { size: 3, color: "white", style: { color: "white" } }, ["Follow these steps to upload your workflow:"]),
+						$el("ol", { style: { color: "white" } }, [
 							$el("li", {}, ["Share your workflow online at ComfyWorkflows.com."]),
 							$el("li", {}, ["Go to your workflow's URL"]),
 							$el("li", {}, ["Click the 'Enable online workflow' or 'Update online workflow' button on the workflow's page."]),
@@ -326,6 +340,185 @@ class CWMenuDialog extends ComfyDialog {
 	}
 }
 
+
+
+class CWExportMenuDialog extends ComfyDialog {
+	constructor() {
+		super();
+
+		this.final_message = $el("div", {
+			style: {
+				color: "white",
+				textAlign: "center",
+				// marginTop: "10px",
+				// backgroundColor: "black",
+				padding: "10px",
+			}
+		}, []);
+
+		this.deploy_button = $el("button", {
+			type: "submit",
+			textContent: "Export workflow",
+			style: {
+				backgroundColor: "blue"
+			}
+		}, []);
+
+		const close_button = $el("button", {
+			type: "button", textContent: "Close", onclick: () => {
+				// Reset state
+				this.deploy_button.textContent = "Export workflow";
+				this.deploy_button.style.display = "inline-block";
+				this.final_message.innerHTML = "";
+				this.final_message.style.color = "white";
+				this.close()
+			}
+		});
+
+		const content =
+			$el("div.cw3-menu-container", //"div.comfy-modal-content",
+				[
+					$el("tr.cw3-export-title", {
+						width: "100%", style: {
+							padding: "10px 10px 10px 10px",
+						}
+					}, [
+						$el("font", { size: 6, color: "white" }, [`Export your workflow`]),
+						$el("br", {}, []),
+						$el("font", { size: 3, color: "white" }, [`This will let anyone import & run this workflow with ZERO setup, using ComfyUI-Launcher.`]),
+						$el("br", {}, []),
+						// https://github.com/thecooltechguy/ComfyUI-Launcher
+						$el("font", { size: 2, color: "white" }, ["https://github.com/thecooltechguy/ComfyUI-Launcher"]),
+					]),
+					$el("br", {}, []),
+					this.final_message,
+					$el("br", {}, []),
+					this.deploy_button,
+					close_button,
+				],
+			);
+
+		this.deploy_button.onclick = async () => {
+			const prompt = await app.graphToPrompt();
+
+			const workflowNodes = prompt.workflow.nodes;
+			const filteredNodeTypeToNodeData = {};
+			for (const workflowNode of workflowNodes) {
+				const workflowNodeData = NODE_TYPE_X_NODE_DATA[workflowNode.type];
+				if (workflowNodeData) {
+					filteredNodeTypeToNodeData[workflowNode.type] = workflowNodeData;
+				}
+			}
+
+			// Change the text of the share button to "Sharing..." to indicate that the share process has started
+			this.deploy_button.textContent = "Exporting...";
+			this.final_message.style.color = "white"; //"green";
+			const initialFinalMessage = "This may take a few minutes. Please do not close this window. See the console for the export progress.";
+			this.final_message.innerHTML = initialFinalMessage;
+
+			// set an interval to call /cw/export_progress every 1 second to get the export progress and set the text of the final message
+			// cancel the interval once the /cw/export endpoint returns a response
+
+			const deployProgressInterval = setInterval(async () => {
+				const deployProgressResp = await api.fetchApi(`/cw/export_progress`, {
+					method: 'GET',
+					headers: { 'Content-Type': 'application/json' },
+				});
+
+				if (deployProgressResp.status == 200) {
+					try {
+						const deployProgressResp_json = await deployProgressResp.json();
+						const statusText = deployProgressResp_json.status;
+						if (statusText) {
+							this.final_message.innerHTML = initialFinalMessage + "<br/><br/>" + statusText;
+						}
+					} catch (e) {
+						// console.log(e);
+					}
+				}
+			}, 1_000);
+
+			const response = await api.fetchApi(`/cw/export`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					prompt,
+					filteredNodeTypeToNodeData
+				})
+			});
+
+			clearInterval(deployProgressInterval);
+
+			if (response.status != 200) {
+				try {
+					const response_json = await response.json();
+					if (response_json.error) {
+						alert(response_json.error);
+						this.deploy_button.textContent = "Export workflow";
+						this.deploy_button.style.display = "inline-block";
+						this.final_message.innerHTML = "";
+						this.final_message.style.color = "white";
+						this.close();
+						return;
+					} else {
+						alert("Failed to export your workflow. Please try again.");
+						this.deploy_button.textContent = "Export workflow";
+						this.deploy_button.style.display = "inline-block";
+						this.final_message.innerHTML = "";
+						this.final_message.style.color = "white";
+						this.close();
+						return;
+					}
+				} catch (e) {
+					alert("Failed to export your workflow. Please try again.");
+					this.deploy_button.textContent = "Export workflow";
+					this.deploy_button.style.display = "inline-block";
+					this.final_message.innerHTML = "";
+					this.final_message.style.color = "white";
+					this.close();
+					return;
+				}
+			}
+
+			const response_json = await response.json();
+
+			// trigger a download of a json file containing the response_json as content
+			const blob = new Blob([JSON.stringify(response_json)], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'comfyui-launcher.json';
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+
+			this.final_message.innerHTML = "Your workflow has been exported & downloaded to your computer (as a comfyui-launcher.json file). Now, anyone can run your workflow with ZERO setup using ComfyUI-Launcher.";
+			this.final_message.style.color = "white"; //"green";
+
+			// hide the share button
+			this.deploy_button.textContent = "Exported!";
+			this.deploy_button.style.display = "none";
+		}
+
+
+		content.style.width = '100%';
+		content.style.height = '100%';
+
+		this.element = $el("div.comfy-modal", { parent: document.body }, [content]);
+		this.element.style.width = '1000px';
+		// this.element.style.height = '400px';
+		this.element.style.zIndex = 10000;
+	}
+
+	show() {
+		this.element.style.display = "block";
+	}
+}
+
+
+
+
 app.registerExtension({
 	name: "ComfyUI.ComfyWorkflows",
 	init() {
@@ -350,8 +543,41 @@ app.registerExtension({
 				setCWInstance(new CWMenuDialog());
 			cw_instance.show();
 		}
-
 		menu.append(deployButton);
+
+		const exportButton = document.createElement("button");
+		exportButton.textContent = "Export workflow (Launcher)";
+		exportButton.onclick = () => {
+			if (!cw_export_instance)
+				setCWExportInstance(new CWExportMenuDialog());
+			cw_export_instance.show();
+		}
+		menu.append(exportButton);
+
+		// if this is the first time the user is opening this project, load the default graph for this project
+		// this is necessary because the user may have previously run a different comfyui on the same port as this project, so the local storage would have that workflow's graph
+		const res = await api.fetchApi(`/cw/current_graph`, {
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' },
+		});
+		if (res.status === 200) {
+			const res_json = await res.json();
+			if (res_json) {
+				await app.loadGraphData(res_json);
+			} else {
+				await app.loadGraphData(defaultGraph);
+			}
+
+			// note how we only start the interval to save the graph to the server after the graph has been loaded initially
+			setInterval(async () => {
+				const graph = await app.graphToPrompt();
+				const res = await api.fetchApi(`/cw/save_graph`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(graph['workflow']),
+				});
+			}, 1_000);
+		}
 	},
 
 	async beforeRegisterNodeDef(nodeType, nodeData, app) {
