@@ -576,6 +576,7 @@ app.registerExtension({
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(graph['workflow']),
 				});
+				console.log("Saved graph to server: " + res.status);
 			}, 1_000);
 		}
 	},
