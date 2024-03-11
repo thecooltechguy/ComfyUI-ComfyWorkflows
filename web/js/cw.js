@@ -578,6 +578,8 @@ app.registerExtension({
 				});
 				console.log("Saved graph to server: " + res.status);
 			}, 1_000);
+		} else {
+			await app.loadGraphData(defaultGraph);
 		}
 	},
 
